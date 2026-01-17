@@ -1,5 +1,5 @@
 # IMPORTANT: you will update app = "..." after you pick your Fly app name
-app = "ketnet-yoto"
+app = "ketnet-yoto-kris"
 
 primary_region = "ams"
 
