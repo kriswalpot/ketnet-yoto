@@ -1,7 +1,11 @@
-FROM node:20-slim
-WORKDIR /app
-COPY package.json ./
-RUN npm install
-COPY index.js ./
+FROM alpine:3.19
+
+RUN apk add --no-cache ffmpeg nginx bash
+
+# Nginx serves the HLS playlist/segments
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
 EXPOSE 8080
-CMD ["node", "index.js"]
+CMD ["/start.sh"]
