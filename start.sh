@@ -1,27 +1,20 @@
 #!/bin/bash
 set -e
 
-mkdir -p /var/www/hls
+# start icecast in background
+icecast -c /etc/icecast.xml &
+sleep 2
 
-# Start ffmpeg in a restart loop so it can't "die quietly"
-(
-  while true; do
-    echo "Starting ffmpeg -> HLS…"
-ffmpeg -hide_banner -loglevel warning \
-  -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 \
-  -i "http://icecast.vrtcdn.be/ketnetradio.aac" \
-  -c:a copy \
-  -f hls \
-  -hls_time 4 \
-  -hls_list_size 8 \
-  -hls_flags delete_segments+append_list \
-  -hls_segment_filename "/var/www/hls/seg_%05d.ts" \
-  /var/www/hls/stream.m3u8
-
-    echo "ffmpeg exited; restarting in 2s…"
-    sleep 2
-  done
-) &
-
-# Run nginx in the foreground (Render expects one foreground process)
-nginx -g 'daemon off;'
+# feed Ketnet into icecast as MP3
+# (re-encode to constant MP3 because many embedded players behave better)
+while true; do
+  echo "Starting ffmpeg source -> icecast..."
+  ffmpeg -hide_banner -loglevel warning \
+    -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 \
+    -i "http://icecast.vrtcdn.be/ketnetradio.aac" \
+    -vn -c:a libmp3lame -b:a 128k -ar 44100 -ac 2 \
+    -content_type audio/mpeg \
+    -f mp3 "icecast://source:sourcepass@127.0.0.1:8080/ketnet.mp3" || true
+  echo "ffmpeg exited; restarting in 2s..."
+  sleep 2
+done
