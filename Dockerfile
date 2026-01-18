@@ -1,9 +1,8 @@
 FROM alpine:3.19
 
-RUN apk add --no-cache ffmpeg nginx bash
+RUN apk add --no-cache icecast ffmpeg bash
 
-# Nginx serves the HLS playlist/segments
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY icecast.xml /etc/icecast.xml
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
